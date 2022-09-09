@@ -4,7 +4,6 @@ using HR.LeaveManagement.Application.DTOs.LeaveAllocation;
 using HR.LeaveManagement.Application.Exceptions;
 using HR.LeaveManagement.Application.Features.LeaveAllocation.Requests.Commands;
 using HR.LeaveManagement.Application.Persistence.Contracts;
-using HR.LeaveManagement.Domain;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -14,28 +13,29 @@ using System.Threading.Tasks;
 
 namespace HR.LeaveManagement.Application.Features.LeaveAllocation.Handlers.Commands
 {
-    public class CreateLeaveAllocationCommandHandler : IRequestHandler<CreateLeaveAllocationCommand, int>
+    public class UpdateLeaveAllocationCommandHandler : IRequestHandler<UpdateLeaveAllocationCommand, bool>
     {
         private readonly ILeaveAllocationRepository _repository;
         private readonly IMapper _mapper;
-        private readonly IValidator<CreateLeaveAllocationDto> _validator;
+        private readonly IValidator<UpdateLeaveAllocationDto> _validator;
 
-        public CreateLeaveAllocationCommandHandler(ILeaveAllocationRepository repository, IMapper mapper,IValidator<CreateLeaveAllocationDto> validator)
+        public UpdateLeaveAllocationCommandHandler(ILeaveAllocationRepository repository, IMapper mapper,IValidator<UpdateLeaveAllocationDto> validator)
         {
             _repository = repository;
             _mapper = mapper;
             _validator = validator;
         }
-
-        public async Task<int> Handle(CreateLeaveAllocationCommand request, CancellationToken cancellationToken)
+        public async Task<bool> Handle(UpdateLeaveAllocationCommand request, CancellationToken cancellationToken)
         {
-            var vResult = await _validator.ValidateAsync(request.LeaveAllocationDto);
+            var vResult = await _validator.ValidateAsync(request.UpdateLeaveAllocationDto);
 
             if (!vResult.IsValid) throw new CValidationException(vResult);
 
-            var result = _mapper.Map<LeaveAllocationDomain>(request.LeaveAllocationDto);
+            var currentDbEntity = await _repository.GetAsync(request.UpdateLeaveAllocationDto.Id);
 
-            return (await _repository.AddAsync(result)).Id;
+            _mapper.Map(request.UpdateLeaveAllocationDto, currentDbEntity);
+
+            return await _repository.UpdateAsync(currentDbEntity);
         }
     }
 }

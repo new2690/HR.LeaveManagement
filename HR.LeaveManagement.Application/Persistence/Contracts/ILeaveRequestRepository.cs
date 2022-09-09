@@ -1,4 +1,5 @@
-﻿using HR.LeaveManagement.Domain;
+﻿using HR.LeaveManagement.Application.DTOs.LeaveRequest;
+using HR.LeaveManagement.Domain;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +8,9 @@ using System.Threading.Tasks;
 
 namespace HR.LeaveManagement.Application.Persistence.Contracts
 {
-    public interface ILeaveRequestRepository: IGenericRepository<LeaveRequestDomain>
+    public interface ILeaveRequestRepository : IGenericRepository<LeaveRequestDomain>
     {
+        Task<bool> ChangeLeaveRequestApproval(LeaveRequestDomain currentDbEntity, bool? approvedStatus);
+        
     }
 }
